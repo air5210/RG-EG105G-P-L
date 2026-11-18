@@ -1,11 +1,51 @@
-# RG-EG105G-P-L 路由器增强 · 二进制发布
+# RG-EG105G-P-L 路由器增强
 
-锐捷 RG-EG105G-P-L（MT7621A / mipsel_24kc **无 FPU** / ReyeeOS 2.340.0.2014 / Linux 4.4.198 / musl）
-自管理平台（adm5544）配套的 **mipsle 二进制发布仓**。
+> 给一台只有 **121 MB 内存、3.8 MB overlay** 的锐捷 RG-EG105G-P-L，加一套真正能用的独立管理台。
+>
+> 不刷机、不替换固件：原厂 80/443 保留，额外在 **5544** 启动 lighttpd + Lua CGI；
+> FRP、Trojan、WireGuard、DDNS、防火墙、状态趋势、企业微信/钉钉通知都在一个页面里管理。
 
-源码、部署脚本、网页与完整改造教程在私有仓库 `RG-EG105G-P-L-src`（不公开）。
+## 这是什么
 
-> 本仓库仅供个人对自己拥有设备的软件改造学习研究之用，请遵守当地法律法规，禁止用于任何违法违规用途。
+- 一个**旁路管理台**，不是 OpenWrt 固件、不是刷机包；
+- 管理 FRPC/FRPS、Trojan 服务端、WireGuard、DDNS、防火墙和通知；
+- 闪存只放几十 KB 的压缩包，网页/脚本/二进制运行时释放到 `/tmp`；
+- 内置一键还原：删除所有后期改动，保留原厂 80/443 与 SSH。
+
+## 一张图
+
+```mermaid
+flowchart LR
+  B[浏览器] -->|5544| L[lighttpd]
+  L -->|CGI| A[api.lua]
+  A -->|读写| C[/etc/adm 加密配置/]
+  A -->|调用| S[adm-sys.sh]
+  S -->|iptables / 启停| K[系统与内核]
+  D[adm-daemon.sh] -->|5s 指标/保活| K
+  B2[客户端] -->|frpc / trojan / wg| K
+```
+
+## 功能
+
+| 模块 | 能力 |
+|---|---|
+| 状态 | 真实服务状态、监听端口、设备表、CPU/内存 3/6/12/24h 趋势 |
+| FRP | xfrpc 内置，支持 tcp/udp/http/https/tcpmux/stcp/xtcp/sudp 与 P2P 回退 |
+| Trojan | 自研最小服务端，TLS + SHA224 摘要，Clash 订阅 |
+| WireGuard | 主动/被动端、`.conf` 导入、出口节点健康、紧急恢复 |
+| 网络 | DDNS、防火墙表格/脚本双模式、命令行 |
+| 运维 | 通知、配置加密、导入导出、一键还原 |
+
+## 仓库说明
+
+- **本仓**：二进制发布仓，只放 mipsle 可执行包和校验文件；
+- **源码 / 教程 / 部署包**：私有仓 [`RG-EG105G-P-L-src`](https://github.com/air5210/RG-EG105G-P-L-src)
+  （如需访问请联系作者）。其中的 `deploy/` 是自包含目录，含 Windows `deploy.bat`/`deploy.ps1`、
+  Linux/macOS `deploy.sh` 和预构建 bundle，只下载该目录即可部署。
+
+> 仅用于自己拥有设备的软件改造学习研究，请遵守当地法律法规，禁止用于未授权访问或违规用途。
+
+---
 
 ## 二进制清单
 
